@@ -1,0 +1,33 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=35
+
+Given a number of Java properties in a basic format, this will generate the getters and setters for them; for example, given:
+
+String myString
+int myInt
+
+you will get:
+
+protected String m_myString;
+protected int m_myInt;
+
+public void setMyString( String val )
+{
+  m_myString = val;
+}
+
+public String getMyString()
+{
+  return m_myString;
+}
+
+public void setMyInt( int val )
+{
+  m_myInt = val;
+}
+
+public int getMyInt()
+{
+  return m_myInt;
+}
+
+
