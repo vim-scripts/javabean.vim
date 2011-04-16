@@ -30,4 +30,45 @@ public int getMyInt()
   return m_myInt;
 }
 
+Version 2.0:
+
+Added getters and setters for array variables; for example:
+
+String[] names
+
+results in:
+
+protected String[] m_names;
+
+public void setNames( String[] val )
+{
+    m_names = val;
+}
+
+public String[] getNames()
+{
+    return m_names;
+}
+
+public void setNames( String val, int index )
+{
+    m_names[ index ] = val;
+}
+
+public String getNames( int index )
+{
+    return m_names[ index ];
+}
+
+Version 2.5:
+
+Added a new variable (g:javabean_generateArrayAccessors--defaults to 1) to control whether or not to generate array index-based getters and setters.
+
+Allowed the specification of the three configuration variables in the Vimrc instead of having to modify this file; the variables and their default values, again, are:
+
+g:javabean_scope = "protected"
+
+g:javabean_beanPrefix = "m_"
+
+g:javabean_generateArrayAccessors = 1
 

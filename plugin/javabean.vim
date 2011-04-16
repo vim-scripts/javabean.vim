@@ -1,6 +1,6 @@
 " -*- vim -*-
-" FILE: "C:/vim/Vimfiles/plugin/javabean.vim" {{{
-" LAST MODIFICATION: "Wed, 18 Jul 2001 17:05:24  (Administrator)"
+" FILE: "C:/vim/Vimfiles/ftplugin/java/javabean.vim" {{{
+" LAST MODIFICATION: "Wed, 15 Feb 2006 13:47:44 Eastern Standard Time"
 " (C) 2001 by Salman Halim, <salman@hp.com>
 " $Id:$ }}}
 
@@ -35,14 +35,47 @@
 "   return m_myInt;
 " }
 "
-"
 " should be called on a number of lines (use the mappings at the bottom of the
 " file or use the command Fixproperty)  that are selected visually -- can also
 " be called to act upon the current line without a visual selection.
 
 " this can be  set on a per-buffer basis (b:javabean_scope)  to change this to
 " something else (such as 'protected transient' or some such)
-let g:javabean_scope = 'protected'
+" let g:javabean_scope      = 'private'
+" let g:javabean_beanPrefix = 'm_'
+"
+" Version 2.0:
+"
+" Added getters and setters for array variables; for example:
+"
+" String[] names
+"
+" results in:
+"
+" protected String[] m_names;
+"
+" public void setNames( String[] val )
+" {
+"     m_names = val;
+" }
+"
+" public String[] getNames()
+" {
+"     return m_names;
+" }
+"
+" public void setNames( String val, int index )
+" {
+"     m_names[ index ] = val;
+" }
+"
+" public String getNames( int index )
+" {
+"     return m_names[ index ];
+" }
+
+let g:javabean_scope      = 'protected'
+let g:javabean_beanPrefix = 'm_'
 
 " the pattern that the property line is expected to be in (<type> <name> where
 " <name> does NOT start with m_)
@@ -53,7 +86,7 @@ function! s:SetupVars()
   let s:varType = substitute(getline('.'), s:linePattern, '\1', '')
   let s:varName = substitute(getline('.'), s:linePattern, '\2', '')
   let s:capName = substitute(s:varName, '.*', '\u&', '')
-  let s:varName = 'm_' . s:varName
+  let s:varName = g:javabean_beanPrefix . s:varName
 endfunction
 
 function! s:GetVarDec()
@@ -61,10 +94,24 @@ function! s:GetVarDec()
 endfunction
 
 function! s:GetSetterAndGetters()
-  let setter = "public void set" . s:capName . "( " . s:varType . " val )\<CR>" . "{\<CR>" . s:varName . " = val;\<CR>}\<CR>"
-  let getter = "public " . s:varType . " get" . s:capName . "()\<CR>{\<CR>return " . s:varName . ";\<CR>}\<CR>"
+  let getterName = s:varType ==# "boolean" ? "is" : "get"
 
-  return setter . "\<CR>" . getter
+  let setter = "public void set" . s:capName . "( " . s:varType . " val )\<CR>" . "{\<CR>" . s:varName . " = val;\<CR>}\<CR>"
+  let getter = "public " . s:varType . " " . getterName . s:capName . "()\<CR>{\<CR>return " . s:varName . ";\<CR>}\<CR>"
+
+  let result = setter . "\<CR>" . getter
+
+  " Array variable; generate index-based getters and setters also.
+  if ( s:varType =~ '\[\]$' )
+    let baseType    = substitute( s:varType, '\[\]$', '', '' )
+    let getterName  = baseType ==# "boolean" ? "is" : "get"
+    let setterIndex = "public void set" . s:capName . "( " . baseType . " val, int index )\<CR>" . "{\<CR>" . s:varName . "[ index ] = val;\<CR>}\<CR>"
+    let getterIndex = "public " . baseType . " " . getterName . s:capName . "( int index )\<CR>{\<CR>return " . s:varName . "[ index ];\<CR>}\<CR>"
+
+    let result = result . "\<CR>" . setterIndex . "\<CR>" . getterIndex
+  endif
+
+  return result
 endfunction
 
 function! s:FixProperty() range
@@ -116,14 +163,12 @@ endfunction
 
 com! -range Fixproperty silent call <SID>FixPropertyRange(<line1>, <line2>)
 
-noremap \Fixproperty :Fixproperty<CR>
+noremap <PLUG>Fixproperty :Fixproperty<CR>
 
-if (!hasmapto('\Fixproperty', 'n'))
-  nmap <Leader>xp \Fixproperty
-  " nmap <Leader>xp :Fixproperty<CR>
+if (!hasmapto('<PLUG>Fixproperty', 'n'))
+  nmap <Leader>xp <PLUG>Fixproperty
 endif
 
-if (!hasmapto('\Fixproperty', 'v'))
-  vmap <Leader>xp \Fixproperty
-  " vmap <Leader>xp :Fixproperty<CR>
+if (!hasmapto('<PLUG>Fixproperty', 'v'))
+  vmap <Leader>xp <PLUG>Fixproperty
 endif
