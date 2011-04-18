@@ -73,9 +73,31 @@
 " {
 "     return m_names[ index ];
 " }
+"
+" Version 2.5:
+"
+" Added a new variable (g:javabean_generateArrayAccessors--defaults to 1) to control whether or not to generate array index-based getters and setters.
+"
+" Allowed the specification of the three configuration variables in the Vimrc instead of having to modify this file; the variables and their default values,
+" again, are:
+"
+" g:javabean_scope = "protected"
+"
+" g:javabean_beanPrefix = "m_"
+"
+" g:javabean_generateArrayAccessors = 1
 
-let g:javabean_scope      = 'protected'
-let g:javabean_beanPrefix = 'm_'
+if ( !exists( "g:javabean_scope" ) )
+  let g:javabean_scope = 'protected'
+endif
+
+if ( !exists( "g:javabean_beanPrefix" ) )
+  let g:javabean_beanPrefix = 'm_'
+endif
+
+if ( !exists( "g:javabean_generateArrayAccessors" ) )
+  let g:javabean_generateArrayAccessors = 1
+endif
 
 " the pattern that the property line is expected to be in (<type> <name> where
 " <name> does NOT start with m_)
@@ -102,7 +124,7 @@ function! s:GetSetterAndGetters()
   let result = setter . "\<CR>" . getter
 
   " Array variable; generate index-based getters and setters also.
-  if ( s:varType =~ '\[\]$' )
+  if ( g:javabean_generateArrayAccessors && s:varType =~ '\[\]$' )
     let baseType    = substitute( s:varType, '\[\]$', '', '' )
     let getterName  = baseType ==# "boolean" ? "is" : "get"
     let setterIndex = "public void set" . s:capName . "( " . baseType . " val, int index )\<CR>" . "{\<CR>" . s:varName . "[ index ] = val;\<CR>}\<CR>"
